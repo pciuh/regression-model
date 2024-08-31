@@ -30,9 +30,10 @@ rLim = [30,15]
 
 ofnam = grn[IND]+'-report.txt'
 
-dfa = df[df.group==grn[IND]]      
+dfa = df[df.group==grn[IND]]
+print(dfa.head())
 
-df_c = dfa.corr()
+#df_c = dfa.corr()
 
 print(grn[IND])
 print(dfa.isnull().sum())
@@ -127,7 +128,7 @@ if TST:
     fig1,ax = plt.subplots(1,figsize=(9,9))
     sns.heatmap(df_c,vmin=-1,vmax=1,cmap='viridis',annot=True,linewidth=.1)
     fig1.savefig('heatmap-'+grn[IND]+'.png',dpi=300)
-    
+
     #fig2,ax = plt.subplots(1,figsize=(9,9))
     fig2=sns.pairplot(dfa,kind='reg', diag_kind='kde')
     fig2.savefig('pairplot-'+grn[IND]+'.png',dpi=300)

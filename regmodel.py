@@ -22,7 +22,7 @@ pDir = 'plots/'
 TST = True
 
 fnam = 'data.csv'
-df = pd.read_csv(fnam,sep=',',header=0)
+df = pd.read_csv(iDir + fnam,sep=',',header=0)
 
 grn = ['group1','group2']
 

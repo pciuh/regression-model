@@ -16,7 +16,10 @@ from sklearn.model_selection import train_test_split
 from statsmodels.tools.eval_measures import mse, rmse
 from sklearn.metrics import mean_absolute_error
 
-TST = False
+iDir = 'input/'
+pDir = 'plots/'
+
+TST = True
 
 fnam = 'data.csv'
 df = pd.read_csv(fnam,sep=',',header=0)
@@ -30,10 +33,10 @@ rLim = [30,15]
 
 ofnam = grn[IND]+'-report.txt'
 
-dfa = df[df.group==grn[IND]]
+dfa = df[df.group==grn[IND]].drop(['group'],axis=1)
 print(dfa.head())
 
-#df_c = dfa.corr()
+df_c = dfa.corr(method='spearman')
 
 print(grn[IND])
 print(dfa.isnull().sum())
@@ -112,7 +115,6 @@ of.write('\n')
 
 fig.savefig(grn[IND]+'-residuals.png',dpi=300,bbox_inches='tight')
 
-
 for i,c in enumerate(coef):
     if i<1:
         of.write('dependent = %.3f'%c)
@@ -125,11 +127,21 @@ for i,c in enumerate(coef):
 of.close()
 
 if TST:
-    fig1,ax = plt.subplots(1,figsize=(9,9))
-    sns.heatmap(df_c,vmin=-1,vmax=1,cmap='viridis',annot=True,linewidth=.1)
-    fig1.savefig('heatmap-'+grn[IND]+'.png',dpi=300)
+    #fig1,ax = plt.subplots(1,figsize=(9,9))
+    #sns.heatmap(df_c,vmin=-1,vmax=1,cmap='viridis',annot=True,linewidth=.1,ax=ax, cbar_kws={'shrink':.7})
+#
+    #ax.set_aspect(1)
+    #fig1.savefig('heatmap-'+grn[IND]+'.png',dpi=300)
+#
+    fig,ax = plt.subplots(1,figsize=(9,9))
+    fig=sns.pairplot(df,kind='reg', diag_kind='kde',hue='group')
+    fig.savefig(pDir + 'pairplot.png',dpi=150)
 
-    #fig2,ax = plt.subplots(1,figsize=(9,9))
-    fig2=sns.pairplot(dfa,kind='reg', diag_kind='kde')
-    fig2.savefig('pairplot-'+grn[IND]+'.png',dpi=300)
+    vec = df.columns[1:-1]
+    print(vec)
+    fig, ax = plt.subplots(1,len(vec),figsize=(12,4))
+    for i,v in enumerate(vec):
 
+        sns.boxplot(data=df,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
+        fig.tight_layout()
+        fig.savefig(pDir + 'boxplot.png',dpi=150)

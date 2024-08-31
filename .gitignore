@@ -160,3 +160,27 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+.DS_Store
+.git
+.gitignore
+.regmodel.py.~undo-tree~
+!LICENSE
+!README.md
+!data.csv
+group1-reg.png
+group1-report.txt
+group1-residuals.png
+group2-reg.png
+group2-report.txt
+group2-residuals.png
+group2_x-te.csv
+group2_x-tr.csv
+heatmap-group1.png
+heatmap-group2.png
+lab3-report.pages
+lab3-report.pdf
+pairplot-group1.png
+pairplot-group2.png
+readme
+!regmodel.py
+report.txt

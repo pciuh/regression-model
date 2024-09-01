@@ -141,10 +141,9 @@ if TST:
     print(vec)
     fig, ax = plt.subplots(1,len(vec),figsize=(12,4))
     for i,v in enumerate(vec):
-
         sns.boxplot(data=df,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
-        fig.tight_layout()
-        fig.savefig(pDir + 'boxplot.png',dpi=150)
+    fig.tight_layout()
+    fig.savefig(pDir + 'boxplot.png',dpi=150)
 
 
 def outlim(ser):

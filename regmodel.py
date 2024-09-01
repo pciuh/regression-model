@@ -133,9 +133,9 @@ if TST:
     #ax.set_aspect(1)
     #fig1.savefig('heatmap-'+grn[IND]+'.png',dpi=300)
 #
-    fig,ax = plt.subplots(1,figsize=(9,9))
-    fig=sns.pairplot(df,kind='reg', diag_kind='kde',hue='group')
-    fig.savefig(pDir + 'pairplot.png',dpi=150)
+#    fig,ax = plt.subplots(1,figsize=(6,6))
+#    fig=sns.pairplot(df,kind='reg', diag_kind='kde',hue='group')
+#    fig.savefig(pDir + 'pairplot.png',dpi=150)
 
     vec = df.columns[1:-1]
     print(vec)
@@ -145,3 +145,35 @@ if TST:
         sns.boxplot(data=df,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
         fig.tight_layout()
         fig.savefig(pDir + 'boxplot.png',dpi=150)
+
+
+def outlim(ser):
+    iqr = np.diff(np.percentile(ser,[25,75]))[0]
+    med = np.median(ser)
+    return(med-1.5*iqr,med+1.5*iqr)
+
+
+#vec = ['var1','var3']
+dfn = pd.DataFrame()
+for g in ['group1','group2']:
+    kg = df.group == g
+    dfi = df[kg]
+    k = True
+    for ke in vec:
+        lLim,uLim = outlim(dfi[ke])
+        k1 = (dfi[ke]<=uLim) & (dfi[ke]>=lLim)
+        k = k*k1
+
+    dfn = pd.concat([dfn,dfi[k]])
+
+print(df.shape[0],dfn.shape[0])
+
+fig, ax = plt.subplots(1,len(vec),figsize=(12,4))
+for i,v in enumerate(vec):
+
+    sns.boxplot(data=dfn,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
+    fig.tight_layout()
+    fig.savefig(pDir + 'boxplot-no.png',dpi=150)
+#fig,ax = plt.subplots(2)
+#sns.boxplot(data=df[k],y=df[k][key],x='group',hue='group',fill=False,ax=ax,orient='v')
+#plt.show()

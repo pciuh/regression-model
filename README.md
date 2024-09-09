@@ -20,7 +20,7 @@ The dataset is provided in a `data.csv` file and includes multiple variables. Th
    - Present the regression results using a scatter plot.
    - Use aesthetics to indicate different groups on the plot. You may need separate scatter plots for different groups (depending on the case).
 
-## Reporting
+## Summary
 
 - **Approach Justification**: Description and justification of approach is presented in a *Jupyter-Notebook* report.
 - **Include Plot**: The report includes the scatter plot visualization.

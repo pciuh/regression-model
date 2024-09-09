@@ -22,5 +22,5 @@ The dataset is provided in a `data.csv` file and includes multiple variables. Th
 
 ## Summary
 
-- **Approach Justification**: Description and justification of approach is presented in a *Jupyter-Notebook* report.
+- **Approach Justification**: Description and justification of approach is presented in a [*Jupyter-Notebook*](https://github.com/pciuh/regression-model/blob/main/regression-model.ipynb) report.
 - **Include Plot**: The report includes the scatter plot visualization.

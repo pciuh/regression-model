@@ -22,4 +22,4 @@ regmodel-kopia.py
 !regression-model.ipynb
 report.txt
 !requirements.txt
-venv
+venv/

@@ -1,6 +1,6 @@
 .#regmodel.py
 .DS_Store
-.git
+.git/
 .gitignore
 .ipynb_checkpoints
 .regmodel.py.~undo-tree~

@@ -1,178 +1,143 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 10 18:25:41 2021
-
-@author: pciuh
-"""
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
 
+from statsmodels.tools.eval_measures import rmse
 from sklearn.model_selection import train_test_split
-from statsmodels.tools.eval_measures import mse, rmse
+from sklearn.linear_model import LinearRegression, Ridge, ElasticNet
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import mean_absolute_error
 
+### Reading data
 iDir = 'input/'
 pDir = 'plots/'
 
-TST = True
-
 fnam = 'data.csv'
 df = pd.read_csv(iDir + fnam,sep=',',header=0)
+display(df.head())
+display(df.tail())
 
-grn = ['group1','group2']
+### Feature inspection
+fig = sns.pairplot(df,kind='reg', diag_kind='kde',corner=True,hue='group',aspect=1)
+fig.savefig(pDir + 'pairplot-all.png',dpi=150)
 
-IND = 0
-SEED = [306,921]
-TSIZ = [0.33,0.25]
-rLim = [30,15]
+key = df.columns[1:-1]
 
-ofnam = grn[IND]+'-report.txt'
+def plboxp(df,key,fnam):
+    fig, ax = plt.subplots(1,len(key),figsize=(9,3))
+    for i,k in enumerate(key):
+        sns.boxplot(data=df,y=k,x='group',hue='group',fill=False,ax=ax[i],orient='v')
 
-dfa = df[df.group==grn[IND]].drop(['group'],axis=1)
-print(dfa.head())
-
-df_c = dfa.corr(method='spearman')
-
-print(grn[IND])
-print(dfa.isnull().sum())
-
-Y = dfa.dependent.reset_index(drop=True)
-
-vheads = np.array([['time','var1','var2','var3','var4'],
-                   ['time','var1','var2','var3','var4']],dtype=object)
-vnpow =  np.array([[3.0,1.0,-.5,2.5,2.0],
-                   [3.0,1.0,1.0,2.5,2.0]],dtype=object)
-
-#print(vheads[IND])
-heads = vheads[IND]
-#heads = ['time','var1','var2','var3','var4']
-
-npow  = vnpow[IND]
-
-nvar = len(heads)
-data = np.zeros((len(dfa['time']),nvar))
-for i,h in enumerate(heads):
-    data[:,i] = dfa[h]**npow[i]
-
-dc = dict(zip(heads,data.T))
-X = pd.DataFrame(dc)
-
-X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = TSIZ[IND] , random_state = SEED[IND]) 
-
-
-of = open(ofnam,'w')
-
-of.write('Training Data Count: {}\n'.format(X_train.shape[0]))
-of.write('Testing Data Count: {}\n'.format(X_test.shape[0]))
-
-X_train = sm.add_constant(X_train)
-results = sm.OLS(y_train, X_train).fit()
-
-of.write(results.summary().as_text())
-
-X_test = sm.add_constant(X_test)
-Y_preds = results.predict(X_test)
-
-mSiz = 100*np.abs(y_test-Y_preds)/max(y_test)
-#mSiz = (y_test-Y_preds)
-
-fig,ax = plt.subplots(1,figsize=(5,5))
-#plt.style.use('seaborn')
-scp = ax.scatter(y_test,Y_preds,c=mSiz,cmap='viridis',alpha=1.0)
-cba = plt.colorbar(scp,shrink=.75,label='Residuals / Predict Max [%]')
-scp.set_clim(0,5.0)
-ax.set_title(grn[IND])
-ax.plot(y_test,y_test,'-r')
-ax.set_xlabel('Test')
-ax.set_ylabel('Prediction')
-ax.set_aspect(1)
-ax.grid()
-
-fig.savefig(grn[IND]+'-reg.png',dpi=300,bbox_inches='tight')
-
-bns = np.linspace(-rLim[IND],rLim[IND],13)
-
-fig,ax = plt.subplots(1,figsize=(5,5))
-num,bns,_ = ax.hist(y_test - Y_preds,bns,rwidth=.96,color='#6688aa',align='mid')
-ax.set_title(grn[IND])
-ax.set_xlabel('Residuals')
-ax.set_ylabel('Counts')
-ax.grid(axis='y', alpha=0.75)
-ax.set_xticks(bns[::2])
-
-
-coef=results.params
-of.write('\n\nErrors:\n')
-of.write(' MAE: {:6.2f}\n'.format(mean_absolute_error(y_test, Y_preds)))
-of.write(' MSE: {:6.2f}\n'.format(mse(y_test, Y_preds)))
-of.write('RMSE: {:6.2f}\n'.format(rmse(y_test, Y_preds)))
-of.write('\n')
-
-fig.savefig(grn[IND]+'-residuals.png',dpi=300,bbox_inches='tight')
-
-for i,c in enumerate(coef):
-    if i<1:
-        of.write('dependent = %.3f'%c)
-    else:
-        if c>0:
-            of.write(' + ')
-
-        of.write('%.3f x %s ^ %.1f'%(c,heads[i-1],npow[i-1]))
-
-of.close()
-
-if TST:
-    #fig1,ax = plt.subplots(1,figsize=(9,9))
-    #sns.heatmap(df_c,vmin=-1,vmax=1,cmap='viridis',annot=True,linewidth=.1,ax=ax, cbar_kws={'shrink':.7})
-#
-    #ax.set_aspect(1)
-    #fig1.savefig('heatmap-'+grn[IND]+'.png',dpi=300)
-#
-#    fig,ax = plt.subplots(1,figsize=(6,6))
-#    fig=sns.pairplot(df,kind='reg', diag_kind='kde',hue='group')
-#    fig.savefig(pDir + 'pairplot.png',dpi=150)
-
-    vec = df.columns[1:-1]
-    print(vec)
-    fig, ax = plt.subplots(1,len(vec),figsize=(12,4))
-    for i,v in enumerate(vec):
-        sns.boxplot(data=df,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
     fig.tight_layout()
-    fig.savefig(pDir + 'boxplot.png',dpi=150)
+    fig.savefig(pDir + fnam + '.png',dpi=150)
 
+plboxp(df,key,'boxplot-all')
 
 def outlim(ser):
     iqr = np.diff(np.percentile(ser,[25,75]))[0]
     med = np.median(ser)
     return(med-1.5*iqr,med+1.5*iqr)
-
-
-#vec = ['var1','var3']
 dfn = pd.DataFrame()
+
 for g in ['group1','group2']:
     kg = df.group == g
     dfi = df[kg]
     k = True
-    for ke in vec:
+    for ke in key:
         lLim,uLim = outlim(dfi[ke])
         k1 = (dfi[ke]<=uLim) & (dfi[ke]>=lLim)
         k = k*k1
 
     dfn = pd.concat([dfn,dfi[k]])
 
-print(df.shape[0],dfn.shape[0])
+print('   Size of original dataset:',df.shape[0])
+print('Size of dataset wo outliers:',dfn.shape[0])
+plboxp(dfn,key,'boxplot-clean')
 
-fig, ax = plt.subplots(1,len(vec),figsize=(12,4))
-for i,v in enumerate(vec):
+fig = sns.pairplot(dfn,kind='reg', diag_kind='kde',corner=True,hue='group',aspect=1)
+fig.savefig(pDir + 'pairplot-clean.png',dpi=150)
 
-    sns.boxplot(data=dfn,y=v,x='group',hue='group',fill=False,ax=ax[i],orient='v')
-    fig.tight_layout()
-    fig.savefig(pDir + 'boxplot-no.png',dpi=150)
-#fig,ax = plt.subplots(2)
-#sns.boxplot(data=df[k],y=df[k][key],x='group',hue='group',fill=False,ax=ax,orient='v')
-#plt.show()
+
+## Building regression model
+npow =  {'group1':[3.0,1.0,-.5,2.0,2.0],
+         'group2':[2.0,1.0,1.0,1.0,2.0]}
+
+SEED = 1311131
+
+
+y = dfn.dependent
+X = pd.DataFrame()
+
+model_name = ['LinearRegression','Ridge','ElasticNet']
+model      = [LinearRegression(fit_intercept=True),
+              Ridge(fit_intercept=True),
+              ElasticNet(fit_intercept=True)]
+
+p_dist = {'ElasticNet':{ 'alpha' : np.linspace(0.1,99.9,990), 'l1_ratio' : np.linspace(0.1,0.9,9),'tol' : [1e-1,1e-4]},
+          'Ridge':{'alpha' : np.linspace(0.1,.9,990)},
+         }
+
+col = ['#1f77b4','#ff7f0e','#2ca02c']
+mar = ['s','<','o']
+
+fig,ax = plt.subplots(1,2,figsize=(9,4))
+fiq,axq = plt.subplots(1,2,figsize=(9,4))
+
+for i,g in enumerate(['group1','group2']):
+    for ii,n in enumerate(npow[g]):
+        X[key[ii]] = dfn[key[ii]]**n
+
+    k = dfn.group == g
+
+    X_train, X_test, y_train, y_test = train_test_split(X[k], y[k], test_size = 0.3 , random_state = SEED)
+
+    vpr = []
+
+    print('\n%8s metrics'%(g))
+    s = [120,70,30]
+
+    for ii,m in enumerate(model):
+
+        if model_name[ii] != 'LinearRegression':
+            rsh = RandomizedSearchCV(estimator=m, param_distributions=p_dist[model_name[ii]])
+            rsh.fit(X_train, y_train)
+            bp = rsh.best_params_
+            m.set_params(**bp)
+        m.fit(X_train,y_train)
+        y_pred = m.predict(X_test)
+        vpr.append(y_pred)
+        form = '%%%is'%int(1/2*(len(model_name[ii])+8)+16)
+        print('%12s'%model_name[ii])
+        print('%16s:%8.5f'%('R^2',m.score(X_test,y_test)))
+        print('%16s:%8.1f'%('RMSE',rmse(y_pred,y_test)))
+        #ax[i].scatter(y_test,m.predict(X_test),ec=col[ii],s=s[ii],fc='white',alpha=1,label=model_name[ii])
+        res = np.abs(y_test-m.predict(X_test))*10
+
+        ###### Correlation Plots
+        ax[i].scatter(y_test,y_pred,ec=col[ii],s=s[ii],fc=col[ii]+'22',label=model_name[ii])
+
+        #### Q-Q Residuals Plots
+        fiq = sm.qqplot(res, marker = mar[ii], markeredgecolor=col[ii],
+                        markerfacecolor=col[ii]+'22', ax=axq[i], fit=True,
+                        line='45', label=model_name[ii])
+        axq[i].set_title(g)
+        axq[i].legend()
+        axq[i].set_aspect(1)
+    print()
+    ax[0].legend()
+    xL = [min(y_test),max(y_test)]
+    ax[i].plot(xL,xL,c='tab:red')
+    ax[i].set_aspect(1)
+    ax[i].set_title(g)
+
+    dfr = pd.DataFrame(data=vpr).T
+    dfr.columns = model_name
+    dfr = pd.concat([y_test.reset_index(drop=True),dfr],axis=1)
+    display(dfr.head())
+    display(dfr.describe())
+
+
+
+plt.show()
